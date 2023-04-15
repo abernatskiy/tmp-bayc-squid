@@ -46,7 +46,7 @@ export function addAllEntityGenerators() {
     EntityGenerator.addGenerator('Owner', generatorOfOwners)
     EntityGenerator.addGenerator('Token', generatorOfTokens)
     EntityGenerator.addGenerator('Transfers', generatorOfTransfers)
-    EntityGenerator.addGenerationOrder(['Owner', 'Token', 'Transfers'])
+    EntityGenerator.setGenerationOrder(['Owner', 'Token', 'Transfers'])
 }
 
 

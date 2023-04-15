@@ -19,20 +19,17 @@ export class EntityGenerator {
     /*
      * Array of entity names in the order in which they have to be processed
      */
-    static entityGenerationOrder: string[] = []
+    private static entityGenerationOrder: string[] = []
     /*
      * Maps entity names to entity generating functions
      * TODO: type the functions
      */
-    static entityGenerators: Record<string, any> = {}
+    private static entityGenerators: Record<string, any> = {}
 
     private constructor() {}
 
-    static addGenerationOrder(order: string[]): void {
-        /*
-         * Any form of toposort merger goes here
-         */
-        this.entityGenerationOrder.push(...order)
+    static setGenerationOrder(order: string[]): void {
+        this.entityGenerationOrder = order
     }
 
     static addGenerator(entityName: string, generator: any): void {
