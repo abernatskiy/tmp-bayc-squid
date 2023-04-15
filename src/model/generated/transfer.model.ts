@@ -1,5 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
-import * as marshal from "./marshal"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
+import {Owner} from "./owner.model"
+import {Token} from "./token.model"
 
 @Entity_()
 export class Transfer {
@@ -23,14 +24,14 @@ export class Transfer {
     transactionHash!: string
 
     @Index_()
-    @Column_("text", {nullable: false})
-    from!: string
+    @ManyToOne_(() => Owner, {nullable: true})
+    from!: Owner
 
     @Index_()
-    @Column_("text", {nullable: false})
-    to!: string
+    @ManyToOne_(() => Owner, {nullable: true})
+    to!: Owner
 
     @Index_()
-    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-    tokenId!: bigint
+    @ManyToOne_(() => Token, {nullable: true})
+    token!: Token
 }

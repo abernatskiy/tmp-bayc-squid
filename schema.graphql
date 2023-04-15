@@ -1,10 +1,20 @@
+type Owner @entity {
+    id: ID! # owner address
+}
+
+type Token @entity {
+    id: ID! # string form of tokenId
+    tokenId: Int!
+    owner: Owner!
+}
+
 type Transfer @entity {
     id: ID!
     blockNumber: Int! @index
     blockTimestamp: DateTime! @index
     transactionHash: String! @index
-    from: String! @index
-    to: String! @index
-    tokenId: BigInt! @index
+    from: Owner!
+    to: Owner!
+    token: Token!
 }
 

@@ -2,7 +2,7 @@ import {EvmBatchProcessor, BatchHandlerContext} from '@subsquid/evm-processor'
 import {lookupArchive} from '@subsquid/archive-registry'
 import {contract} from './mapping'
 import {db, Store} from './db'
-import {EntityBuffer} from './entityBuffer'
+import {EntityGenerator} from './entityGenerator'
 
 const processor = new EvmBatchProcessor()
 processor.setDataSource({
@@ -29,6 +29,8 @@ processor.addLog(contract.address, {
     },
 })
 
+contract.addAllEntityGenerators()
+
 processor.run(db, async (ctx: BatchHandlerContext<Store, any>) => {
     for (let {header: block, items} of ctx.blocks) {
         for (let item of items) {
@@ -37,7 +39,7 @@ processor.run(db, async (ctx: BatchHandlerContext<Store, any>) => {
             }
         }
     }
-    for (let entities of EntityBuffer.flush()) {
-        await ctx.store.insert(entities)
-    }
+
+    await EntityGenerator.generateAllEntities(ctx.store)
+    EntityGenerator.clearBatchState()
 })
