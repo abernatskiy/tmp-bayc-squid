@@ -7,6 +7,8 @@ import {EntityGenerator} from './entityGenerator'
 const processor = new EvmBatchProcessor()
 processor.setDataSource({
     archive: lookupArchive('eth-mainnet', {type: 'EVM'}),
+    // replace with a private endpoint for better performance
+    chain: 'https://rpc.ankr.com/eth'
 })
 processor.addLog(contract.address, {
     filter: [
@@ -40,6 +42,6 @@ processor.run(db, async (ctx: BatchHandlerContext<Store, any>) => {
         }
     }
 
-    await EntityGenerator.generateAllEntities(ctx.store)
+    await EntityGenerator.generateAllEntities(ctx)
     EntityGenerator.clearBatchState()
 })
