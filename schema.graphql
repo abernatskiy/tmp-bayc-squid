@@ -1,11 +1,13 @@
 type Owner @entity {
     id: ID! # owner address
+    ownedTokens: [Token!]! @derivedFrom(field: "owner")
 }
 
 type Token @entity {
     id: ID! # string form of tokenId
     tokenId: Int!
     owner: Owner!
+    transfers: [Transfer!]! @derivedFrom(field: "token")
 }
 
 type Transfer @entity {
