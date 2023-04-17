@@ -1,4 +1,5 @@
 import assert from 'assert'
+import * as model from './model'
 
 interface Entity {
     id: string
@@ -7,34 +8,31 @@ interface Entity {
     }
 }
 
+export interface EntityGenerationParams {
+	name: keyof typeof model
+	generator: (store?: any) => Promise<any[]>
+	persistWith: 'save' | 'insert'
+	extender?: (partialEntities: any[], store?: any) => Promise<Entity[]>
+}
+
 export class EntityGenerator {
     /*
      * Maps freeform string keys to arrays of raw blockchain data
      */
     static rawData: Record<string, any[]> = {}
     /*
-     * Maps entity names to maps from entity instance ids to entity instances
+     * Maps entity names to maps from entity instance IDs to entity instances
      */
     static entities: Record<string, Map<string, any>> = {}
     /*
-     * Array of entity names in the order in which they have to be processed
+     * Array of entity generation params in the order in which the entities have to be processed
      */
-    private static entityGenerationOrder: string[] = []
-    /*
-     * Maps entity names to entity generating functions
-     * TODO: type the functions
-     */
-    private static entityGenerators: Record<string, any> = {}
+    private static entityGenerationOrder: EntityGenerationParams[] = []
 
     private constructor() {}
 
-    static setGenerationOrder(order: string[]): void {
+    static setGenerationOrder(order: EntityGenerationParams[]): void {
         this.entityGenerationOrder = order
-    }
-
-    static addGenerator(entityName: string, generator: any): void {
-        assert(this.entityGenerators[entityName] == null)
-        this.entityGenerators[entityName] = generator
     }
 
     static addRawData(key: string, data: any): void {
@@ -54,8 +52,29 @@ export class EntityGenerator {
     }
 
     static async generateAllEntities(store: any): Promise<void> {
-        for (let entityName of this.entityGenerationOrder) {
-            await this.entityGenerators[entityName](store)
+        for (let genParams of this.entityGenerationOrder) {
+            // Objects that contain the fields of the entity class that
+            // are retrieved directly from the processor
+            let partials = await genParams.generator(store)
+
+            // Objects that contain all the fields of the entity class,
+            // including possibly those received from IPFS, state calls,
+            // external APIs etc
+            let completes: {id: string}[]
+            if (genParams.extender) {
+                // Can be optimized by only extending the partials that
+                // have missing fields. Keeping it simple for the moment.
+                completes = await genParams.extender(partials, store)
+            }
+            else {
+                completes = partials
+            }
+
+            // Generating and saving the entities proper
+            completes.forEach(args => {
+                this.addEntityInstance(new model[genParams.name](args))
+            })
+            await store[genParams.persistWith]([...this.entities[genParams.name].values()])
         }
     }
 
